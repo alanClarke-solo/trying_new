@@ -1,0 +1,77 @@
+spring:
+  application:
+    name: inventory-management-system
+  
+  # Database Configuration
+  datasource:
+    url: jdbc:oracle:thin:@//localhost:1521/XEPDB1
+    username: inventory_user
+    password: secure_password
+    driver-class-name: oracle.jdbc.OracleDriver
+    hikari:
+      connection-timeout: 20000
+      maximum-pool-size: 10
+      minimum-idle: 5
+      idle-timeout: 300000
+      max-lifetime: 1200000
+  
+  # Redis Configuration
+  redis:
+    host: localhost
+    port: 6379
+    password: # Leave empty if no password
+    timeout: 2000 # Connection timeout in milliseconds
+    namespace: inventory-${spring.profiles.active:dev}  # Environment-specific namespace
+    lettuce:
+      pool:
+        max-active: 8
+        max-idle: 8
+        min-idle: 0
+        max-wait: -1ms
+  
+  # Cache Configuration
+  cache:
+    type: redis
+    redis:
+      time-to-live:
+        products: 3600    # 1 hour in seconds
+        categories: 7200  # 2 hours in seconds
+        suppliers: 7200   # 2 hours in seconds
+      cache-null-values: false
+      use-key-prefix: true
+
+---
+# Development profile
+spring:
+  config:
+    activate:
+      on-profile: dev
+  redis:
+    namespace: inventory-dev
+
+---
+# Testing profile
+spring:
+  config:
+    activate:
+      on-profile: test
+  redis:
+    namespace: inventory-test
+
+---
+# Staging profile
+spring:
+  config:
+    activate:
+      on-profile: staging
+  redis:
+    namespace: inventory-staging
+
+---
+# Production profile
+spring:
+  config:
+    activate:
+      on-profile: prod
+  redis:
+    namespace: inventory-prod
