@@ -49,7 +49,7 @@ public class WebClientConfig {
             } else if (clientResponse.statusCode().is4xxClientError()) {
                 return clientResponse.bodyToMono(String.class)
                         .flatMap(errorBody -> {
-                            HttpStatus status = HttpStatus.resolve(clientResponse.rawStatusCode());
+                            HttpStatus status = HttpStatus.resolve(clientResponse.statusCode().value());
                             if (status == null) {
                                 status = HttpStatus.BAD_REQUEST;
                             }
