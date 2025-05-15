@@ -1,0 +1,4 @@
+Swagger
+https://www.accionlabs.com/blogs/how-to-use-swagger-apiinfo-and-manage-global-spring-exception-handling-in-swagger
+https://www.accionlabs.com/blogs/extending-swagger-and-spring-doc-open-api
+
