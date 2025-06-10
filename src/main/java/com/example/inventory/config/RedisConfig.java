@@ -143,7 +143,7 @@ public class RedisConfig {
     /**
      * Custom Redis serializer that adds namespace to keys
      */
-    public class NamespacedStringRedisSerializer extends StringRedisSerializer {
+    public static class NamespacedStringRedisSerializer extends StringRedisSerializer {
         private final String namespace;
 
         public NamespacedStringRedisSerializer(String namespace) {
