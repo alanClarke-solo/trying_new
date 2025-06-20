@@ -24,7 +24,7 @@ public class CacheService {
 
     private final CacheManager cacheManager;
     private final RedisTemplate<String, Object> redisTemplate;
-    private final ChannelTopic cacheInvalidationTopic;
+    private final ChannelTopic cacheUpdatesTopic;
     private final ObjectMapper objectMapper;
     private final String redisNamespace;
 
@@ -32,12 +32,12 @@ public class CacheService {
     public CacheService(
             CacheManager cacheManager,
             RedisTemplate<String, Object> redisTemplate,
-            ChannelTopic cacheInvalidationTopic,
+            ChannelTopic cacheUpdatesTopic,
             ObjectMapper objectMapper,
             @Value("${spring.redis.namespace:inventory}") String redisNamespace) {
         this.cacheManager = cacheManager;
         this.redisTemplate = redisTemplate;
-        this.cacheInvalidationTopic = cacheInvalidationTopic;
+        this.cacheUpdatesTopic = cacheUpdatesTopic;
         this.objectMapper = objectMapper;
         this.redisNamespace = redisNamespace;
     }
@@ -76,30 +76,31 @@ public class CacheService {
      * @param key the key to invalidate
      */
     public void publishCacheInvalidation(String cacheName, Object key) {
-        CacheInvalidationEvent event = new CacheInvalidationEvent(cacheName, String.valueOf(key));
+        CacheInvalidationEvent event = new CacheInvalidationEvent(cacheName, key.toString());
         try {
-            String message = objectMapper.writeValueAsString(event);
-            log.debug("Publishing cache invalidation event: {}", message);
-            redisTemplate.convertAndSend(cacheInvalidationTopic.getTopic(), message);
-        } catch (JsonProcessingException e) {
-            log.error("Error serializing cache invalidation event", e);
+            log.debug("Publishing cache invalidation event: {}", event);
+            redisTemplate.convertAndSend(cacheUpdatesTopic.getTopic(), objectMapper.writeValueAsString(event));
+        } catch (Exception e) {
+            log.error("Failed to publish cache invalidation event", e);
         }
     }
 
-    /**
-     * Store a value directly in Redis with namespace and TTL
-     */
-    public void storeValue(String key, Object value, long ttlSeconds) {
-        ValueOperations<String, Object> ops = redisTemplate.opsForValue();
-        ops.set(key, value, ttlSeconds, TimeUnit.SECONDS);
+    public void invalidateCache(String cacheName, String key) {
+        try {
+            log.debug("Evicting from cache: {}:{}", cacheName, key);
+            cacheManager.getCache(cacheName).evict(key);
+        } catch (Exception e) {
+            log.error("Failed to evict cache entry: {}:{}", cacheName, key, e);
+        }
     }
 
-    /**
-     * Retrieve a value directly from Redis with namespace
-     */
-    public Object getValue(String key) {
-        ValueOperations<String, Object> ops = redisTemplate.opsForValue();
-        return ops.get(key);
+    public void clearCache(String cacheName) {
+        try {
+            log.debug("Clearing cache: {}", cacheName);
+            cacheManager.getCache(cacheName).clear();
+        } catch (Exception e) {
+            log.error("Failed to clear cache: {}", cacheName, e);
+        }
     }
 
     /**

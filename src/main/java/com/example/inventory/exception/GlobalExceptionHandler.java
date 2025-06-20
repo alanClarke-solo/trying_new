@@ -32,13 +32,13 @@ public class GlobalExceptionHandler {
         
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .timestamp(LocalDateTime.now())
-                .status(ex.getStatus().toString())
+                .status(ex.getHttpStatus().toString())
                 .errorCode(ex.getErrorCode())
                 .message(truncateMessage(ex.getMessage()))
                 .path(getRequestPath(request))
                 .build();
                 
-        return new ResponseEntity<>(errorResponse, ex.getStatus());
+        return new ResponseEntity<>(errorResponse, ex.getHttpStatus());
     }
     
     @ExceptionHandler(MethodArgumentNotValidException.class)

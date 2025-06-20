@@ -3,6 +3,8 @@ package com.example.inventory.service;
 import java.util.List;
 import java.util.Optional;
 
+import com.example.inventory.exception.EntityNotFoundException;
+import com.example.inventory.repository.ProductCustomRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
@@ -23,6 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 public class ProductService {
 
     private final ProductRepository productRepository;
+    private final ProductCustomRepository customRepository;
     private final CategoryService categoryService;
     private final SupplierService supplierService;
     private final CacheService cacheService;
@@ -30,10 +33,12 @@ public class ProductService {
     @Autowired
     public ProductService(
             ProductRepository productRepository,
+            ProductCustomRepository customRepository,
             CategoryService categoryService,
             SupplierService supplierService,
             CacheService cacheService) {
         this.productRepository = productRepository;
+        this.customRepository = customRepository;
         this.categoryService = categoryService;
         this.supplierService = supplierService;
         this.cacheService = cacheService;
@@ -196,6 +201,32 @@ public class ProductService {
             cacheService.publishCacheInvalidation("products", "supplier:" + supplierId);
         }
         cacheService.publishCacheInvalidation("products", "lowStock:10"); // Common threshold
+    }
+
+
+    public Product updateProduct(Long id, Product updates) {
+        Product existingProduct = productRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Product not found"));
+
+        // Update fields if they're not null in the updates
+        if (updates.getName() != null) {
+            existingProduct.setName(updates.getName());
+        }
+
+        if (updates.getDescription() != null) {
+            existingProduct.setDescription(updates.getDescription());
+        }
+
+        if (updates.getPrice() != null) {
+            existingProduct.setPrice(updates.getPrice());
+        }
+
+        // etc. for other fields
+
+        // Use selective update with our tracking store
+        customRepository.updateSelectively(existingProduct);
+
+        return existingProduct;
     }
 
     // Helper method to enrich a product with its category and supplier

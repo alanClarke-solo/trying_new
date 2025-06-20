@@ -3,6 +3,7 @@ package com.example.inventory.model;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+import com.example.inventory.model.tracking.TrackChanges;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.relational.core.mapping.Column;
@@ -16,6 +17,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table("PRODUCTS")
+@TrackChanges  // Mark the whole class for change tracking
 public class Product {
 
     @Id
