@@ -4,6 +4,7 @@ import com.example.inventory.exception.CacheException;
 import com.example.inventory.exception.ExternalServiceException;
 import com.example.inventory.exception.ResourceNotFoundException;
 import io.netty.handler.timeout.TimeoutException;
+import lombok.extern.log4j.Log4j2;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -20,7 +21,7 @@ import java.util.Arrays;
 
 @Aspect
 @Component
-@Slf4j
+@Log4j2
 public class ErrorLoggingAspect {
 
     /**
