@@ -33,13 +33,27 @@ public class FieldChangeTrackingAspect {
     }
 
     /**
-     * Intercept setter method calls on classes annotated with @TrackChanges
+     * Intercept setter method calls ONLY on classes in your application packages
+     * that are annotated with @TrackChanges
      */
-    @Before("execution(* set*(..)) && " +
-            "(@target(com.example.inventory.model.tracking.TrackChanges) || " +
-            "@annotation(com.example.inventory.model.tracking.TrackChanges)) && " +
+    @Before("execution(* com.example.inventory.model.*.set*(..)) && " +
+            "@target(com.example.inventory.model.tracking.TrackChanges) && " +
             "args(newValue)")
-    public void trackFieldChange(JoinPoint joinPoint, Object newValue) {
+    public void trackFieldChangeOnClass(JoinPoint joinPoint, Object newValue) {
+        trackFieldChange(joinPoint, newValue);
+    }
+
+    /**
+     * Intercept setter method calls on methods annotated with @TrackChanges
+     */
+    @Before("execution(* com.example.inventory.model.*.set*(..)) && " +
+            "@annotation(com.example.inventory.model.tracking.TrackChanges) && " +
+            "args(newValue)")
+    public void trackFieldChangeOnMethod(JoinPoint joinPoint, Object newValue) {
+        trackFieldChange(joinPoint, newValue);
+    }
+
+    private void trackFieldChange(JoinPoint joinPoint, Object newValue) {
         try {
             Object entity = joinPoint.getTarget();
             MethodSignature signature = (MethodSignature) joinPoint.getSignature();
