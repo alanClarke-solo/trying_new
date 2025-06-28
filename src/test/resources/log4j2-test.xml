@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN">
+    <Properties>
+        <Property name="LOG_PATTERN">%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n</Property>
+        <Property name="TEST_LOG_PATTERN">%d{HH:mm:ss.SSS} [%t] %-5level [TEST] %logger{36} - %msg%n</Property>
+    </Properties>
+
+    <Appenders>
+        <!-- Console Appender for Tests -->
+        <Console name="TestConsole" target="SYSTEM_OUT">
+            <PatternLayout pattern="${TEST_LOG_PATTERN}"/>
+            <ThresholdFilter level="DEBUG" onMatch="ACCEPT" onMismatch="DENY"/>
+        </Console>
+
+        <!-- Test File Appender -->
+        <RollingFile name="TestFileAppender" fileName="logs/test/inventory-test.log"
+                     filePattern="logs/test/inventory-test-%d{yyyy-MM-dd-HH-mm}-%i.log.gz">
+            <PatternLayout pattern="${LOG_PATTERN}%throwable"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy />
+                <SizeBasedTriggeringPolicy size="5MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="5"/>
+        </RollingFile>
+
+        <!-- Test Error Appender -->
+        <RollingFile name="TestErrorAppender" fileName="logs/test/inventory-test-errors.log"
+                     filePattern="logs/test/inventory-test-errors-%d{yyyy-MM-dd-HH-mm}-%i.log.gz">
+            <PatternLayout pattern="${LOG_PATTERN}%throwable"/>
+            <ThresholdFilter level="ERROR" onMatch="ACCEPT" onMismatch="DENY"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy />
+                <SizeBasedTriggeringPolicy size="5MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="3"/>
+        </RollingFile>
+    </Appenders>
+
+    <Loggers>
+        <!-- Test specific loggers with more verbose output -->
+        <Logger name="com.example.inventory" level="DEBUG" additivity="false">
+            <AppenderRef ref="TestConsole"/>
+            <AppenderRef ref="TestFileAppender"/>
+            <AppenderRef ref="TestErrorAppender"/>
+        </Logger>
+
+        <!-- AOP Test Logger - Very detailed for debugging -->
+        <Logger name="com.example.inventory.aop" level="TRACE" additivity="false">
+            <AppenderRef ref="TestConsole"/>
+            <AppenderRef ref="TestFileAppender"/>
+            <AppenderRef ref="TestErrorAppender"/>
+        </Logger>
+
+        <!-- Mockito and Testing Framework -->
+        <Logger name="org.mockito" level="WARN" additivity="false">
+            <AppenderRef ref="TestConsole"/>
+        </Logger>
+
+        <Logger name="org.junit" level="INFO" additivity="false">
+            <AppenderRef ref="TestConsole"/>
+        </Logger>
+
+        <!-- Spring Test Context -->
+        <Logger name="org.springframework.test" level="INFO" additivity="false">
+            <AppenderRef ref="TestConsole"/>
+            <AppenderRef ref="TestFileAppender"/>
+        </Logger>
+
+        <!-- Suppress noisy framework logs during tests -->
+        <Logger name="org.springframework" level="WARN" additivity="false">
+            <AppenderRef ref="TestConsole"/>
+        </Logger>
+
+        <Logger name="org.hibernate" level="WARN" additivity="false">
+            <AppenderRef ref="TestConsole"/>
+        </Logger>
+
+        <!-- Database logs for tests (uncomment for SQL debugging) -->
+        <!--
+        <Logger name="org.hibernate.SQL" level="DEBUG" additivity="false">
+            <AppenderRef ref="TestConsole"/>
+            <AppenderRef ref="TestFileAppender"/>
+        </Logger>
+        -->
+
+        <!-- Root Logger for Tests -->
+        <Root level="DEBUG">
+            <AppenderRef ref="TestConsole"/>
+            <AppenderRef ref="TestFileAppender"/>
+            <AppenderRef ref="TestErrorAppender"/>
+        </Root>
+    </Loggers>
+</Configuration>

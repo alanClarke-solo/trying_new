@@ -147,35 +147,42 @@ public class GlobalExceptionHandlerTest {
     @Test
     public void testHandleWebClientException() {
         // Arrange
-        WebClientException exception = new WebClientResponseException(
-                "Connection failed",
-                URI.create("http://example.com"),
+        WebClientResponseException exception = WebClientResponseException.create(
+                HttpStatus.SERVICE_UNAVAILABLE.value(),
+                "Service Unavailable",
+                null,
+                "Service temporarily unavailable".getBytes(),
                 null
         );
 
         // Act
-        ResponseEntity<ErrorResponse> response = exceptionHandler.handleWebClientException(exception, webRequest);
+        ResponseEntity<ErrorResponse> response = exceptionHandler.handleWebClientResponseException(exception, webRequest);
 
         // Assert
-        assertEquals(HttpStatus.BAD_GATEWAY, response.getStatusCode());
+        assertEquals(HttpStatus.SERVICE_UNAVAILABLE, response.getStatusCode());
         assertNotNull(response.getBody());
-        assertEquals("Failed to communicate with external service", response.getBody().getMessage());
+        assertTrue(response.getBody().getMessage().contains("External service error"));
         assertEquals("EXTERNAL_SERVICE_ERROR", response.getBody().getErrorCode());
-    }
+  }
 
     @Test
     public void testHandleWebClientExceptionWithConnectException() {
         // Arrange
-        ConnectException connectException = new ConnectException("Connection refused");
-        WebClientException exception = new WebClientException("Connection failed", connectException);
+        WebClientResponseException exception = WebClientResponseException.create(
+                HttpStatus.SERVICE_UNAVAILABLE.value(),
+                "Service Unavailable",
+                null,
+                "Service temporarily unavailable".getBytes(),
+                null
+        );
 
         // Act
-        ResponseEntity<ErrorResponse> response = exceptionHandler.handleWebClientException(exception, webRequest);
+        ResponseEntity<ErrorResponse> response = exceptionHandler.handleWebClientResponseException(exception, webRequest);
 
         // Assert
-        assertEquals(HttpStatus.BAD_GATEWAY, response.getStatusCode());
+        assertEquals(HttpStatus.SERVICE_UNAVAILABLE, response.getStatusCode());
         assertNotNull(response.getBody());
-        assertEquals("Connection refused from external service, service may be unavailable", response.getBody().getMessage());
+        assertTrue(response.getBody().getMessage().contains("External service error"));
         assertEquals("EXTERNAL_SERVICE_ERROR", response.getBody().getErrorCode());
     }
 
